@@ -1,0 +1,9 @@
+doctype html
+html(lang="en")
+  head
+    title #{movie.title}
+  body
+    h1 #{movie.title}
+    p #{movie.overview}
+    img(src="https://image.tmdb.org/t/p/w500#{movie.poster_path}" alt=movie.title)
+    a(href="/") Back to Search

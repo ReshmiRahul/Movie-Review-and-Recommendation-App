@@ -1,0 +1,16 @@
+doctype html
+html(lang="en")
+  head
+    title Search Movies
+  body
+    h1 Search Results
+    form(action="/search" method="get")
+      input(type="text" name="query" placeholder="Enter movie name")
+      button(type="submit") Search
+    if movies && movies.length
+      ul
+        each movie in movies
+          li
+            a(href=`/movie/${movie.id}`) #{movie.title}
+    else
+      p No movies found.
