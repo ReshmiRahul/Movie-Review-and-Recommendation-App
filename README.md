@@ -19,9 +19,9 @@ The **Movie Review and Recommendation App** is a web application that allows use
    Purpose: To supplement movie data with additional information such as plot summaries and actor bios.  
    Documentation: [OMDb API Documentation](http://www.omdbapi.com/)
 
-TMDB_API_KEY=11f6e1614ca00e1e7f1bfa4beb452081
-OPENAI_API_KEY=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
-OMDB_API_KEY=1147d595-622a-4eff-8b8d-3422f7c87b27
+3. **OpenAI API**  
+   Purpose: To generate personalized movie reviews and recommendations based on user preferences.  
+   Documentation: [OpenAI API Documentation](https://beta.openai.com/docs/)
 
 
 **env files**
