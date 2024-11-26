@@ -1,4 +1,4 @@
-require('dotenv').config(); // Load environment variables from .env file
+require('dotenv').config(); 
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
@@ -6,7 +6,7 @@ const app = express();
 
 // Set up the view engine to Pug
 app.set('view engine', 'pug');
-app.set('views', path.join(__dirname, 'views')); // The folder where Pug templates are stored
+app.set('views', path.join(__dirname, 'views')); 
 
 // Serve static files like CSS, images, and JavaScript
 app.use(express.static(path.join(__dirname, 'public')));
@@ -22,7 +22,6 @@ app.get('/', async (req, res) => {
         const tmdbResponse = await axios.get(`https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}`);
         const movies = tmdbResponse.data.results;
 
-        // Render the 'index' view with the fetched movies
         res.render('index', { movies });
     } catch (error) {
         console.error('Error fetching popular movies:', error);
@@ -35,7 +34,6 @@ app.get('/movie/:id', async (req, res) => {
     const movieId = req.params.id;
 
     try {
-        // Fetch movie details from TMDB using the movieId
         const tmdbResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}`);
         const tmdbMovie = tmdbResponse.data;
 
@@ -46,7 +44,6 @@ app.get('/movie/:id', async (req, res) => {
             return res.status(404).send('IMDb ID not found for this movie');
         }
 
-        // Now use IMDb ID to fetch full movie details from OMDB API
         const omdbResponse = await axios.get(`http://www.omdbapi.com/?i=${imdbId}&apikey=${OMDB_API_KEY}`);
         const movieDetails = omdbResponse.data;
 
@@ -64,7 +61,7 @@ app.get('/movie/:id', async (req, res) => {
 
 // Movie Search Route
 app.get('/search', async (req, res) => {
-    const query = req.query.q;  // Getting the search query
+    const query = req.query.q; 
     try {
         const tmdbResponse = await axios.get(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${query}`);
         const movies = tmdbResponse.data.results;
@@ -84,7 +81,7 @@ app.get('/recommendations', async (req, res) => {
         const openaiResponse = await axios.post(
             'https://api.openai.com/v1/chat/completions',
             {
-                model: 'gpt-3.5-turbo', // Updated to a supported model
+                model: 'gpt-3.5-turbo', 
                 messages: [
                     { role: 'system', content: 'You are a helpful assistant.' },
                     { role: 'user', content: 'Suggest a list of popular movies for this year.' }
@@ -121,7 +118,7 @@ app.get('/recommendations', async (req, res) => {
 
 
 
-// Listen on port 3000 (you can change this to any available port)
+// Listen on port 3000 
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
 });
