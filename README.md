@@ -27,8 +27,9 @@ The **Movie Review and Recommendation App** is a web application that allows use
 **env files**
 
 TMDB_API_KEY=11f6e1614ca00e1e7f1bfa4beb452081
-OPENAI_API_KEY=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
-OMDB_API_KEY=1147d595-622a-4eff-8b8d-3422f7c87b27
+OPENAI_API_KEY=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
+OMDB_API_KEY=a5a857ed
+
 
 
 
