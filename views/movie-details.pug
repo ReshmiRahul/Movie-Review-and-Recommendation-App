@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  h1= movie.Title
+  img(src=movie.Poster, alt=movie.Title)
+  p= movie.Plot
+  p Release Year: #{movie.Year}
+  p Rated: #{movie.Rated}
+  p Director: #{movie.Director}
+  p Writer: #{movie.Writer}
+  p Actors: #{movie.Actors}
+  p Genre: #{movie.Genre}
+  p Language: #{movie.Language}
+  p Country: #{movie.Country}

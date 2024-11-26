@@ -1,9 +1,8 @@
-doctype html
-html(lang="en")
-  head
-    title #{movie.title}
-  body
-    h1 #{movie.title}
-    p #{movie.overview}
-    img(src="https://image.tmdb.org/t/p/w500#{movie.poster_path}" alt=movie.title)
-    a(href="/") Back to Search
+extends layout
+
+block content
+  h2= movie.title
+  img(src=`https://image.tmdb.org/t/p/w500${movie.poster_path}`, alt=movie.title)
+  p Release Date: #{movie.release_date}
+  p Overview: #{movie.overview}
+  a(href=`/recommendations/${movie.id}`) View Recommendations

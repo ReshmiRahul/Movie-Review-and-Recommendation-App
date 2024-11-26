@@ -1,8 +1,29 @@
-doctype html
-html(lang="en")
-  head
-    title Movie Review and Recommendation App
-  body
-    h1 Welcome to the Movie Review and Recommendation App!
-    p Search for your favorite movies and get recommendations.
-    a(href="/search") Search Movies
+extends layout
+
+block content
+  //- Add the search form at the top of the page
+  form(action='/search' method='get')
+    input(type='text' name='q' placeholder='Search for movies...' required)
+    button(type='submit') Search
+
+  h2 Popular Movies
+  
+  .movie-grid
+    each movie in movies
+      .movie-card
+        img(src=`https://image.tmdb.org/t/p/w500${movie.poster_path}`, alt=movie.title)
+        .info
+          h2= movie.title
+          p= movie.release_date
+          a(href=`/movie/${movie.id}`) More Details
+  
+  // Add the link to the recommendations page
+  h3
+    a(href='/recommendations') View Movie Recommendations
+
+  // Optionally, if you want to show a preview of the recommendations here:
+  if recommendations
+    h3 Recommended Movies:
+    ul
+      each recommendation in recommendations.split('\n')
+        li= recommendation

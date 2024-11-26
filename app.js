@@ -1,96 +1,127 @@
-// Import necessary modules
+require('dotenv').config(); // Load environment variables from .env file
 const express = require('express');
 const axios = require('axios');
-const dotenv = require('dotenv');
-
-// Initialize express app
+const path = require('path');
 const app = express();
 
-// Load environment variables from .env file
-dotenv.config();
-
-// Set Pug as the view engine
+// Set up the view engine to Pug
 app.set('view engine', 'pug');
-app.set('views', './views');
+app.set('views', path.join(__dirname, 'views')); // The folder where Pug templates are stored
 
-// Define the port
-const PORT = process.env.PORT || 3000;
+// Serve static files like CSS, images, and JavaScript
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Home route
-app.get('/', (req, res) => {
-    res.render('index');
-});
+// Set up API keys from the environment variables
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
+const OMDB_API_KEY = process.env.OMDB_API_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// Search route (for movie search)
-app.get('/search', async (req, res) => {
-    const query = req.query.query;
-
-    if (!query) {
-        return res.render('search', { movies: [] });
-    }
-
+// Home Route: Fetch Popular Movies from TMDB API
+app.get('/', async (req, res) => {
     try {
-        // Fetch search results from TMDb API
-        const response = await axios.get(`https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${query}`);
-        
-        if (response.data.results.length === 0) {
-            console.log('No movies found.');
-        }
+        const tmdbResponse = await axios.get(`https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}`);
+        const movies = tmdbResponse.data.results;
 
-        const movies = response.data.results;
-        res.render('search', { movies });
+        // Render the 'index' view with the fetched movies
+        res.render('index', { movies });
     } catch (error) {
-        console.error('Error fetching search results:', error);
-        res.render('search', { movies: [] });
+        console.error('Error fetching popular movies:', error);
+        res.status(500).send('Error fetching popular movies');
     }
 });
 
-
-// Movie details route
+// Movie Details Route
 app.get('/movie/:id', async (req, res) => {
     const movieId = req.params.id;
 
     try {
-        console.log('Movie ID:', movieId); // Log movie ID to verify it's correct
+        // Fetch movie details from TMDB using the movieId
+        const tmdbResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}`);
+        const tmdbMovie = tmdbResponse.data;
 
-        const response = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${process.env.TMDB_API_KEY}`);
-        console.log('Movie Details:', response.data); // Log the response from TMDb API
-        
-        const movie = response.data;
-        res.render('movie', { movie });
+        // Fetch IMDb ID from TMDB data
+        const imdbId = tmdbMovie.imdb_id;
+
+        if (!imdbId) {
+            return res.status(404).send('IMDb ID not found for this movie');
+        }
+
+        // Now use IMDb ID to fetch full movie details from OMDB API
+        const omdbResponse = await axios.get(`http://www.omdbapi.com/?i=${imdbId}&apikey=${OMDB_API_KEY}`);
+        const movieDetails = omdbResponse.data;
+
+        if (movieDetails.Response === 'True') {
+            // Render the movie details page
+            res.render('movie-details', { movie: movieDetails });
+        } else {
+            res.status(404).send('Movie not found');
+        }
     } catch (error) {
         console.error('Error fetching movie details:', error);
-        res.status(500).send('Internal Server Error');
+        res.status(500).send('Error fetching movie details');
     }
 });
 
-
-// OpenAI recommendation route (Generate personalized movie recommendations)
-app.get('/recommendations', async (req, res) => {
-    const userPreferences = req.query.preferences || 'action, adventure';
-
+// Movie Search Route
+app.get('/search', async (req, res) => {
+    const query = req.query.q;  // Getting the search query
     try {
-        // Fetch personalized recommendations from OpenAI API
-        const openaiResponse = await axios.post('https://api.openai.com/v1/completions', {
-            model: 'text-davinci-003',  // Use GPT-3 model for recommendations
-            prompt: `Recommend movies based on the following preferences: ${userPreferences}.`,
-            max_tokens: 150
-        }, {
-            headers: {
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const tmdbResponse = await axios.get(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${query}`);
+        const movies = tmdbResponse.data.results;
 
-        const recommendations = openaiResponse.data.choices[0].text.trim();
-        res.render('recommendations', { recommendations });
+        // Render the search results in the 'index.pug' view
+        res.render('index', { movies });
     } catch (error) {
-        console.error('Error fetching movie recommendations:', error);
-        res.status(500).send('Something went wrong');
+        console.error('Error fetching search results:', error);
+        res.status(500).send('Error fetching search results');
     }
 });
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+app.get('/recommendations', async (req, res) => {
+    console.log('Fetching movie recommendations...');
+    
+    try {
+        const openaiResponse = await axios.post(
+            'https://api.openai.com/v1/chat/completions',
+            {
+                model: 'gpt-3.5-turbo', // Updated to a supported model
+                messages: [
+                    { role: 'system', content: 'You are a helpful assistant.' },
+                    { role: 'user', content: 'Suggest a list of popular movies for this year.' }
+                ],
+                max_tokens: 150,
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        // Check if OpenAI response has the expected structure
+        if (openaiResponse.data && openaiResponse.data.choices && openaiResponse.data.choices.length > 0) {
+            const movieRecommendations = openaiResponse.data.choices[0].message.content.trim();
+            res.render('recommendations', { recommendations: movieRecommendations });
+        } else {
+            console.error('No recommendations found in OpenAI response');
+            res.status(500).send('Error fetching movie recommendations');
+        }
+
+    } catch (error) {
+        // Detailed error logging
+        if (error.response) {
+            console.error('OpenAI API response error:', error.response.data);
+        } else {
+            console.error('Error:', error.message);
+        }
+        res.status(500).send('Error fetching movie recommendations');
+    }
+});
+
+
+
+// Listen on port 3000 (you can change this to any available port)
+app.listen(3000, () => {
+    console.log('Server is running on port 3000');
 });

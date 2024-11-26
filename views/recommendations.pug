@@ -1,8 +1,12 @@
-doctype html
-html(lang="en")
-  head
-    title Movie Recommendations
-  body
-    h1 Personalized Movie Recommendations
-    p #{recommendations}
-    a(href="/") Go back to home
+extends layout
+
+block content
+  h2 Movie Recommendations
+  .movie-grid
+    each movie in movies
+      .movie-card
+        img(src=`https://image.tmdb.org/t/p/w500${movie.poster_path || ''}`, alt=movie.title)
+        .info
+          h2= movie.title
+          p= movie.release_date || 'Release Date Unknown'
+          a(href=`/movie/${movie.id || ''}`) More Details
